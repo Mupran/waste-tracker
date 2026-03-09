@@ -21,7 +21,8 @@ const DEFAULT_RADIUS = 500;
 const TRUCK_ID = 'all';
 
 export default function SettingsScreen() {
-  const user = auth.currentUser!;
+  const userId = auth.currentUser?.uid ?? 'demo-user';
+  const user = { uid: userId, email: auth.currentUser?.email ?? 'demo@local' };
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [alertRadius, setAlertRadius] = useState(DEFAULT_RADIUS);
   const [loading, setLoading] = useState(true);
@@ -29,7 +30,7 @@ export default function SettingsScreen() {
 
   useEffect(() => {
     async function load() {
-      const snap = await getDoc(doc(db, 'alertPreferences', user.uid));
+      const snap = await getDoc(doc(db, 'alertPreferences', userId));
       if (snap.exists()) {
         const prefs = snap.data() as AlertPreference;
         setNotificationsEnabled(prefs.notificationsEnabled);
@@ -38,7 +39,7 @@ export default function SettingsScreen() {
       setLoading(false);
     }
     load();
-  }, [user.uid]);
+  }, [userId]);
 
   async function handleToggleNotifications(value: boolean) {
     if (value) {
@@ -58,12 +59,12 @@ export default function SettingsScreen() {
     setSaving(true);
     try {
       const prefs: AlertPreference = {
-        userId: user.uid,
+        userId: userId,
         truckId: TRUCK_ID,
         alertRadiusMeters: alertRadius,
         notificationsEnabled,
       };
-      await setDoc(doc(db, 'alertPreferences', user.uid), prefs);
+      await setDoc(doc(db, 'alertPreferences', userId), prefs);
       Alert.alert('Saved', 'Your preferences have been updated.');
     } catch (err: any) {
       Alert.alert('Error', err.message);

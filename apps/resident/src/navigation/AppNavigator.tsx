@@ -1,16 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, View, Text } from 'react-native';
+import React from 'react';
+import { Text } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { onAuthStateChanged, User } from 'firebase/auth';
-import { auth } from '../firebase';
-import LoginScreen from '../screens/LoginScreen';
 import MapScreen from '../screens/MapScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 
 export type RootStackParamList = {
-  Login: undefined;
   Main: undefined;
 };
 
@@ -30,7 +26,7 @@ function MainTabs() {
         tabBarActiveTintColor: '#1565C0',
         tabBarInactiveTintColor: '#9E9E9E',
         tabBarStyle: { borderTopColor: '#E0E0E0' },
-        tabBarIcon: ({ color, size }) => {
+        tabBarIcon: ({ size }) => {
           const icon = route.name === 'Map' ? '🗺️' : '⚙️';
           return <Text style={{ fontSize: size - 4 }}>{icon}</Text>;
         },
@@ -43,33 +39,10 @@ function MainTabs() {
 }
 
 export default function AppNavigator() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      setUser(u);
-      setLoading(false);
-    });
-    return unsub;
-  }, []);
-
-  if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#1565C0" />
-      </View>
-    );
-  }
-
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {user ? (
-          <Stack.Screen name="Main" component={MainTabs} />
-        ) : (
-          <Stack.Screen name="Login" component={LoginScreen} />
-        )}
+        <Stack.Screen name="Main" component={MainTabs} />
       </Stack.Navigator>
     </NavigationContainer>
   );

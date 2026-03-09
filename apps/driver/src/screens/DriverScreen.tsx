@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Alert,
   SafeAreaView,
+  Platform,
 } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { signOut } from 'firebase/auth';
@@ -13,9 +14,9 @@ import { auth } from '../firebase';
 import { useLocationBroadcast } from '../hooks/useLocationBroadcast';
 
 export default function DriverScreen() {
-  const user = auth.currentUser!;
+  const driverId = auth.currentUser?.uid ?? 'demo-driver';
   const { isTracking, currentLocation, error, startTracking, stopTracking } =
-    useLocationBroadcast(user.uid);
+    useLocationBroadcast(driverId);
   const mapRef = useRef<MapView>(null);
 
   useEffect(() => {
@@ -42,7 +43,7 @@ export default function DriverScreen() {
 
   async function handleSignOut() {
     if (isTracking) await stopTracking();
-    await signOut(auth);
+    if (auth.currentUser) await signOut(auth);
   }
 
   const speed = currentLocation?.coords.speed
@@ -62,7 +63,7 @@ export default function DriverScreen() {
       <MapView
         ref={mapRef}
         style={styles.map}
-        provider={PROVIDER_GOOGLE}
+        provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
         showsUserLocation
         followsUserLocation={isTracking}
         initialRegion={{

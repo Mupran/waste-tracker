@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
 } from 'react-native';
+import { Platform } from 'react-native';
 import MapView, { Marker, Circle, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
@@ -57,7 +58,7 @@ function formatDistance(meters: number): string {
 }
 
 export default function MapScreen() {
-  const user = auth.currentUser!;
+  const userId = auth.currentUser?.uid ?? 'demo-user';
   const { trucks, loading } = useTruckLocations();
   const [userLocation, setUserLocation] = useState<Location.LocationObject | null>(null);
   const [prefs, setPrefs] = useState<AlertPreference | null>(null);
@@ -67,11 +68,11 @@ export default function MapScreen() {
 
   // Load alert preferences from Firestore
   useEffect(() => {
-    const unsub = onSnapshot(doc(db, 'alertPreferences', user.uid), (snap) => {
+    const unsub = onSnapshot(doc(db, 'alertPreferences', userId), (snap) => {
       if (snap.exists()) setPrefs(snap.data() as AlertPreference);
     });
     return unsub;
-  }, [user.uid]);
+  }, [userId]);
 
   // Request location and notification permissions on mount
   useEffect(() => {
@@ -171,7 +172,7 @@ export default function MapScreen() {
           <MapView
             ref={mapRef}
             style={styles.map}
-            provider={PROVIDER_GOOGLE}
+            provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
             showsUserLocation
             showsMyLocationButton
             initialRegion={
